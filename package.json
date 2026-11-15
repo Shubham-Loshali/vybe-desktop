@@ -18,7 +18,9 @@
     "start": "electron .",
     "smoke": "node scripts/with-test-temp.mjs node scripts/smoke.mjs",
     "dist": "cross-env VYBE_RELEASE=1 npm run build && electron-builder",
-    "dist:win": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --win nsis",
+    "dist:win": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --win",
+    "dist:win:setup": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --win nsis",
+    "dist:win:portable": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --win portable",
     "dist:mac": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --mac",
     "dist:arm64": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --mac --arm64",
     "dist:x64": "cross-env VYBE_RELEASE=1 npm run build && electron-builder --mac --x64",
@@ -40,9 +42,11 @@
       "build/icon.ico"
     ],
     "win": {
-      "target": "nsis",
+      "target": [
+        "nsis",
+        "portable"
+      ],
       "icon": "build/icon.ico",
-      "artifactName": "Vybe-Setup.${ext}",
       "extraResources": [
         {
           "from": "dist-electron/VybeMedia.exe",
@@ -120,7 +124,11 @@
       "allowToChangeInstallationDirectory": true,
       "deleteAppDataOnUninstall": false,
       "shortcutName": "Vybe",
-      "include": "build/installer.nsh"
+      "include": "build/installer.nsh",
+      "artifactName": "Vybe-Setup.${ext}"
+    },
+    "portable": {
+      "artifactName": "Vybe-Portable.${ext}"
     },
     "publish": [
       {
