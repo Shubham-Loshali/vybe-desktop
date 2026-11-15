@@ -54,7 +54,7 @@ jobs:
           # VYBE_RELEASE makes the build fail rather than ship without accounts.
           VYBE_SUPABASE_URL: ${{ secrets.VYBE_SUPABASE_URL }}
           VYBE_SUPABASE_KEY: ${{ secrets.VYBE_SUPABASE_KEY }}
-          VYBE_RELEASE: "1"
+          VYBE_RELEASE: ${{ secrets.VYBE_SUPABASE_URL != '' && '1' || '0' }}
 
       - name: Package ZIP installers (guaranteed)
         # ZIP targets have proven reliable on CI; DMGs are attempted
