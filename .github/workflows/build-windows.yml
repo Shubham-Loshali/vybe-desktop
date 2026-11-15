@@ -1,0 +1,60 @@
+name: Build Windows installer
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach the build to (e.g. v1.0.3). Empty = artifact only.'
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  win:
+    runs-on: windows-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && (inputs.tag || github.ref_name) || github.ref_name }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build renderer + electron main
+        run: npm run build
+        env:
+          VYBE_SUPABASE_URL: ${{ secrets.VYBE_SUPABASE_URL }}
+          VYBE_SUPABASE_KEY: ${{ secrets.VYBE_SUPABASE_KEY }}
+          VYBE_RELEASE: ${{ secrets.VYBE_SUPABASE_URL != '' && '1' || '0' }}
+
+      - name: Package NSIS installer
+        run: npx electron-builder --win nsis --publish never
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            release/*.exe
+          if-no-files-found: error
+
+      - name: Attach to release
+        if: ${{ github.event_name == 'push' || inputs.tag != '' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          gh release upload "$TAG" release/*.exe --clobber --repo "$GITHUB_REPOSITORY"
