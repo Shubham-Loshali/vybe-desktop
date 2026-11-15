@@ -5,9 +5,8 @@
  * its own songs move within the list instead (useSortable).
  */
 import { useEffect, useRef } from "react";
-import { Download, FileDown, HardDrive, Heart, ListMusic, ListPlus, MoreHorizontal, Play, Shuffle } from "lucide-react";
+import { Download, HardDrive, Heart, ListMusic, ListPlus, MoreHorizontal, Play, Shuffle } from "lucide-react";
 import { downloadAll } from "../lib/downloads";
-import { exportPlaylist } from "../lib/playlistShare";
 import { DownloadBadge } from "../components/TrackList";
 import { CollectionHero, HERO_PLAY } from "../components/CollectionHero";
 import { HERO_ROUND } from "../components/PlaylistHero";
@@ -96,7 +95,6 @@ export function PlaylistView({ playlistId }: { playlistId: string }) {
         },
       },
       { label: "Download all", icon: Download, action: () => downloadAll(tracks, `"${playlist.name}"`) },
-      { label: "Export playlist", icon: FileDown, action: () => void exportPlaylist(playlist.name, tracks) },
       { ...renameItem, separatorBefore: true },
       deleteItem,
     ]);

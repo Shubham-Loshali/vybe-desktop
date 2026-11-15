@@ -69,9 +69,7 @@ import { isWindows } from "../lib/platform";
 import { useLibrary } from "../stores/library";
 import { shownName, useSession } from "../lib/session";
 import { displayNameProblem, normalizeDisplayName } from "../lib/account-validators";
-import { askToDisconnectSpotify, connectSpotify, useSpotify } from "../lib/spotify";
 import { useUpdates } from "../lib/updates";
-import { SpotifyIcon } from "../components/SpotifyIcon";
 import { MATCH_LANGUAGES, type MatchLanguage } from "../../electron/track-match";
 import { LYRICS_NUDGE_STEP, describeLyricsShift } from "../lib/lyricsOffset";
 import { setOnboardingIntent } from "../lib/onboardingIntent";
@@ -591,7 +589,7 @@ function AccountPane() {
           />
         </Group>
       )}
-      <ConnectedServices />
+      <ImportsGroup />
       {signedIn && (
         <Group title="Session">
           <Row
@@ -685,47 +683,19 @@ const MATCH_LANGUAGE_LABEL: Record<MatchLanguage | "", string> = {
 };
 
 /**
- * Connect Spotify: the listener's own Spotify playlists and Liked Songs in the sidebar, matched to
- * YouTube Music. The session stays in main (electron/spotify.ts), sealed, never uploaded. The language
- * row applies to every import too.
+ * Song versions row applied when importing playlists.
  */
-function ConnectedServices() {
-  const status = useSpotify((s) => s.status);
-  const connecting = useSpotify((s) => s.connecting);
+function ImportsGroup() {
   const language = useSettings((s) => s.matchLanguage);
-  const connect = (): void => void connectSpotify();
   return (
     <Group
-      title="Connected services"
-      note="Connecting signs in to Spotify in a window of its own. Vybe keeps that session on this computer for this Vybe account, encrypted, and never uploads it. It reads your playlists the way Spotify's web player does, which isn't an official Spotify feature: it may stop working, and it isn't allowed by Spotify's terms. Songs are found on YouTube Music to play."
+      title="Playlist imports"
+      note="When you paste a playlist link or song list, songs are found on YouTube Music to play."
     >
-      <Row
-        icon={SpotifyIcon}
-        title="Spotify"
-        note={
-          status.connected
-            ? status.problem ?? (status.name ? `Connected as ${status.name}` : "Connected")
-            : connecting
-              ? "Finish signing in in the Spotify window"
-              : "Your playlists and Liked Songs, in your library"
-        }
-        control={
-          status.connected ? (
-            <>
-              {status.problem && <Button onClick={connect}>Reconnect</Button>}
-              <Button onClick={askToDisconnectSpotify}>Disconnect</Button>
-            </>
-          ) : (
-            <Button kind="primary" onClick={connect} disabled={connecting}>
-              {connecting ? "Connecting…" : "Connect"}
-            </Button>
-          )
-        }
-      />
       <Row
         icon={Languages}
         title="Song versions"
-        note="When a song has versions in several languages, imports and Spotify playlists pick this one"
+        note="When a song has versions in several languages, imports pick this one"
         control={<Pick>{MATCH_LANGUAGE_LABEL[language]}</Pick>}
         onPointerDown={keepMenu}
         onClick={(row) =>
@@ -1220,17 +1190,6 @@ function DisplayPane() {
 function LibraryPane() {
   const s = useSettings();
   const toast = useUI((st) => st.toast);
-  const [folderSummary, setFolderSummary] = useState<string | null>(null);
-
-  const refreshFolderSummary = async (): Promise<void> => {
-    const lib = await window.vybe?.localLibrary();
-    const n = lib?.folders?.length ?? 0;
-    setFolderSummary(n === 0 ? "No folders imported yet" : `${n} folder${n === 1 ? "" : "s"} imported`);
-  };
-
-  useEffect(() => {
-    void refreshFolderSummary();
-  }, []);
 
   const browse = async (): Promise<void> => {
     if (!window.vybe) return;
@@ -1245,80 +1204,8 @@ function LibraryPane() {
     }
   };
 
-  const chooseMusicFolder = async (): Promise<void> => {
-    if (!window.vybe) return;
-    try {
-      const dir = await window.vybe.pickFolder();
-      if (!dir) return;
-      toast("Importing folder…", "info");
-      const res = await window.vybe.addLibraryFolders([dir]);
-      if (res.added.length === 0) {
-        setFolderSummary(`${res.lib.folders.length} folders imported`);
-        toast("That folder is already in your library", "info");
-        return;
-      }
-      s.setLocalMusicFolder(dir);
-      await window.vybe.scanLibrary(s.filterNonMusicAudio);
-      setFolderSummary(`${res.lib.folders.length} folder${res.lib.folders.length === 1 ? "" : "s"} imported`);
-      toast("Local library scanned", "success");
-    } catch {
-      toast("Couldn't import that folder", "error");
-    }
-  };
-
-  const rescanMusic = async (): Promise<void> => {
-    if (!window.vybe) return;
-    const lib = await window.vybe.localLibrary();
-    if (!lib?.folders?.length) {
-      toast("Import a local folder first", "info");
-      return;
-    }
-    toast("Rescanning local library…", "info");
-    try {
-      await window.vybe.scanLibrary(s.filterNonMusicAudio);
-      toast("Local library updated", "success");
-    } catch {
-      toast("Rescan failed", "error");
-    }
-  };
-
   return (
     <>
-      <Group title="Local music">
-        <Row
-          icon={FolderOpen}
-          title="Local music folders"
-          note={folderSummary ?? "Your imported collections"}
-          control={<ChevronRight className="st-go" />}
-          onClick={() => useUI.getState().navigate({ name: "local" })}
-        />
-        <Row
-          icon={FolderPlus}
-          title="Add a folder"
-          note="Import music folders. A parent folder brings its music subfolders along"
-          control={<ChevronRight className="st-go" />}
-          onClick={() => void chooseMusicFolder()}
-        />
-        <Row
-          icon={RefreshCw}
-          title="Rescan library"
-          note="Re-read tags and artwork from every imported folder"
-          control={<ChevronRight className="st-go" />}
-          onClick={() => void rescanMusic()}
-        />
-        <Row
-          icon={Filter}
-          title="Filter non-music audio"
-          note="Hide clips, recordings and voice notes (applies on rescan)"
-          toggle={{
-            checked: s.filterNonMusicAudio,
-            onChange: (v) => {
-              s.setFilterNonMusicAudio(v);
-              void rescanMusic();
-            },
-          }}
-        />
-      </Group>
       <Group title="Downloads">
         <Row
           icon={FolderDown}
@@ -1336,13 +1223,6 @@ function LibraryPane() {
             onChange={s.setDownloadQuality}
           />
         </Row>
-        <Row
-          icon={FileMusic}
-          title="Export compatible downloads"
-          note="Also save them into your Music library (Music/Vybe), so other players can use the files. Otherwise downloads stay in the folder above"
-          badge={s.exportDownloads ? "Music/Vybe" : undefined}
-          toggle={{ checked: s.exportDownloads, onChange: s.setExportDownloads }}
-        />
       </Group>
     </>
   );

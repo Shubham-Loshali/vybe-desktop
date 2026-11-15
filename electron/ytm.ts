@@ -1,6 +1,5 @@
 /**
- * Raw InnerTube (YouTube Music) calls + a response parser adapted from
- * GPL-3.0 code (see NOTICE).
+ * Raw InnerTube (YouTube Music) calls + a response parser.
  *
  * The mobile app reads the raw `musicResponsiveListItemRenderer` /
  * `musicCardShelfRenderer` JSON rather than youtubei.js's parsed classes, and

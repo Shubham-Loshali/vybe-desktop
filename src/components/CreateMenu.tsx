@@ -53,7 +53,7 @@ export function CreateMenu({ variant = "icon" }: { variant?: "icon" | "pill" }) 
     { label: "Playlist", note: "Create a playlist with songs", icon: ListPlus, action: newPlaylist },
     // The new folder opens in the middle panel, ready to be filled.
     { label: "Folder", note: "Organize your playlists", icon: Folder, action: askForNewFolder },
-    { label: "Import from Spotify or a list", note: "Paste a playlist link or song names", icon: ClipboardList, action: importList },
+    { label: "Import playlist", note: "Paste a Spotify playlist link or song names", icon: ClipboardList, action: importList },
     { label: "Import a file", note: ".csv, .txt, .m3u8 or Vybe .json", icon: FileUp, action: () => void importPlaylistFile() },
   ];
 

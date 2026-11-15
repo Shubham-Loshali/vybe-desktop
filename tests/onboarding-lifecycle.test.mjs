@@ -134,9 +134,9 @@ test("continuing as a guest asks for a name first: Continue sends it, Skip sends
     assert.equal(sent.length, 0, "not entered yet");
     assert.match(document.querySelector("h2")?.textContent ?? "", /What should we call you/);
     assert.equal(h.button("Continue").disabled, true, "nothing typed: Continue waits, Skip is there");
-    await h.type("Display name", "  Rishi  ");
+    await h.type("Display name", "  Alex  ");
     await h.click("Continue");
-    assert.deepEqual(sent, ["  Rishi  "], "main tidies it");
+    assert.deepEqual(sent, ["  Alex  "], "main tidies it");
     assert.equal(h.refreshes(), 1);
   } finally { await h.close(); }
 
@@ -157,16 +157,16 @@ test("creating an account asks for a display name, separate from the username", 
     syncNow: async () => undefined,
   });
   try {
-    await h.type("Username", "rishi");
+    await h.type("Username", "alex");
     await h.type("Password", "password1");
     await h.type("Confirm password", "password1");
     assert.equal(h.button("Create account").disabled, true, "no display name yet");
     await h.type("Display name", "x".repeat(31));
     assert.equal(h.button("Create account").disabled, true, "too long");
     assert.match(document.body.textContent, /Up to 30 characters/);
-    await h.type("Display name", "Rishi Teja");
+    await h.type("Display name", "Alex Smith");
     await h.click("Create account");
-    assert.deepEqual(calls, [["rishi", "password1", "Rishi Teja"]]);
+    assert.deepEqual(calls, [["alex", "password1", "Alex Smith"]]);
   } finally { await h.close(); }
 });
 
@@ -177,9 +177,9 @@ test("the sign-up boxes keep their words inside: a hint each, and what's known a
     assert.equal(h.field("Display name").placeholder, "What people see");
     assert.match(h.field("Username").placeholder, /letters, numbers/i);
     assert.match(h.field("Password").placeholder, /at least 8 characters/i);
-    await h.type("Username", "ri");
+    await h.type("Username", "al");
     assert.match(said("Username"), /at least 3 characters/i);
-    await h.type("Username", "rishi");
+    await h.type("Username", "alex");
     await act(async () => { await new Promise(r => setTimeout(r, 500)); }); // the availability check
     assert.match(said("Username"), /available/i);
     await h.type("Display name", "x".repeat(31));
@@ -199,13 +199,13 @@ test("a new Google account: the display name comes filled in and goes with the u
   const h = await mount(
     "pickusername",
     { authSetUsername: async (...args) => { calls.push(args); }, authUsernameAvailable: async () => ({ available: true }), syncNow: async () => undefined },
-    { mode: "account", needsUsername: true, suggestedDisplayName: "Rishi Teja Thabeti" }
+    { mode: "account", needsUsername: true, suggestedDisplayName: "Alex Smith" }
   );
   try {
-    assert.equal(h.field("Display name").value, "Rishi Teja Thabeti");
-    await h.type("Username", "rishi_t");
+    assert.equal(h.field("Display name").value, "Alex Smith");
+    await h.type("Username", "alex_s");
     await act(async () => { await new Promise(r => setTimeout(r, 500)); }); // the availability check
     await h.click("Continue");
-    assert.deepEqual(calls, [["rishi_t", "Rishi Teja Thabeti"]]);
+    assert.deepEqual(calls, [["alex_s", "Alex Smith"]]);
   } finally { await h.close(); }
 });

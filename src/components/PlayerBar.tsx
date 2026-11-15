@@ -23,8 +23,7 @@
  *    / miniplayer / fullscreen — 16px icons white @70% → white on hover
  */
 import { useEffect, useRef, useState } from "react";
-import { Heart, ListMusic, ListPlus, Loader2, Moon, Users } from "lucide-react";
-import { useRoom } from "../stores/room";
+import { Heart, ListMusic, ListPlus, Loader2, Moon } from "lucide-react";
 import {
   SpCheck,
   SpCoverNote,
@@ -298,8 +297,6 @@ export function PlayerBar() {
   const nowPlayingOpen = useUI((s) => s.nowPlayingOpen);
   const toggleLyrics = useUI((s) => s.toggleLyrics);
   const toggleQueue = useUI((s) => s.toggleQueue);
-  const toggleRoom = useUI((s) => s.toggleRoom);
-  const roomCode = useRoom((s) => s.view.state?.code ?? null);
   const toggleNowPlaying = useUI((s) => s.toggleNowPlaying);
 
   // The miniplayer is a separate native always-on-top window (see
@@ -433,10 +430,6 @@ export function PlayerBar() {
           </BarButton>
           <BarButton onClick={toggleQueue} title="Queue" active={rightPanel === "queue"}>
             <SpQueue />
-          </BarButton>
-          {/* In a room the button stays lit, as the sleep timer's moon does while it runs. */}
-          <BarButton onClick={toggleRoom} title={roomCode ? `Room ${roomCode}` : "Room"} active={rightPanel === "room" || !!roomCode}>
-            <Users size={16} strokeWidth={2} />
           </BarButton>
           {!hideVolumeBar && <VolumeControl VolIcon={VolIcon} />}
           <BarButton

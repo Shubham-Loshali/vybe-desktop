@@ -33,14 +33,10 @@ import { draggingFromPlaylist, dragHasAlbum, dragHasArtist, dragHasPlaylist, dra
 import { requireBridge } from "../lib/bridge";
 import { downloadAll, startDownload } from "../lib/downloads";
 import { DOWNLOADS_COVER, LIKED_COVER, LOCAL_COVER, REPLAY_COVER } from "../lib/libraryCovers";
-import { askToConnectSpotify, useSpotify } from "../lib/spotify";
 import { useEdgeFades } from "../lib/useEdgeFades";
 import { arrange, moveKey } from "../lib/libraryOrder";
 import { useSortable, type SortableRowProps } from "../lib/useSortable";
-import { SpotifyIcon } from "./SpotifyIcon";
 import type { Track } from "../types";
-
-const SPOTIFY_ROW = "__spotify__";
 
 /* ============================================================ nav */
 
@@ -49,7 +45,7 @@ interface LibRow {
   title: string;
   subtitle: string;
   thumb?: string;
-  kind: "playlist" | "artist" | "folder" | "local" | "downloads" | "replay" | "spotify";
+  kind: "playlist" | "artist" | "folder" | "downloads" | "replay";
   /** artist-imported playlists open the artist page instead of the list */
   artistId?: string;
   /** playlists: the folder they're filed in; folders: their own id */
@@ -74,9 +70,6 @@ function LibraryPill() {
   const followedArtists = useLibrary((s) => s.followedArtists);
   const downloads = useLibrary((s) => s.downloads);
   const pinnedSingles = useLibrary((s) => s.pinnedSingles);
-  const spotifyConnected = useSpotify((s) => s.status.connected);
-  const spotifyProblem = useSpotify((s) => s.status.problem);
-  const spotifyPlaylists = useSpotify((s) => s.playlists);
   const navigate = useUI((s) => s.navigate);
   /** the page open in the middle panel: its row stays lit */
   const view = useUI((s) => s.view);
@@ -157,31 +150,6 @@ function LibraryPill() {
     pinned: singlePinned("downloads"),
     singleKey: "downloads",
   };
-  const localRow: LibRow = {
-    id: "__local__",
-    title: "Local Music",
-    subtitle: "On this device",
-    thumb: LOCAL_COVER,
-    kind: "local",
-    pinned: singlePinned("local"),
-    singleKey: "local",
-  };
-  // Always listed: connected, it opens the account's playlists; not yet, it asks to connect.
-  const spotifyLists = spotifyPlaylists.length;
-  const spotifyRow: LibRow = {
-    id: SPOTIFY_ROW,
-    title: "Spotify",
-    subtitle: !spotifyConnected
-      ? "Connect your playlists"
-      : spotifyProblem
-        ? "Needs reconnecting"
-        : spotifyLists // 0 until the first read: Liked Songs is always one
-          ? `Connected · ${spotifyLists} ${spotifyLists === 1 ? "playlist" : "playlists"}`
-          : "Connected",
-    kind: "spotify",
-    pinned: singlePinned("spotify"),
-    singleKey: "spotify",
-  };
   // Replay: listening stats, otherwise only reachable from Settings.
   const replayRow: LibRow = {
     id: "__replay__",
@@ -192,7 +160,7 @@ function LibraryPill() {
     pinned: singlePinned("replay"),
     singleKey: "replay",
   };
-  const singles: LibRow[] = [likedRow, spotifyRow, replayRow, downloadsRow, localRow];
+  const singles: LibRow[] = [likedRow, replayRow, downloadsRow];
 
   // A playlist of nothing but songs from this computer stays here, and says so where "Playlist" would be.
   const subtitleOf = (p: Playlist): string =>
@@ -517,15 +485,8 @@ function LibraryPill() {
       case "folder":
         openFolder(r.id);
         break;
-      case "local":
-        navigate({ name: "local" });
-        break;
       case "replay":
         navigate({ name: "replay" });
-        break;
-      case "spotify":
-        if (spotifyConnected) navigate({ name: "spotify" });
-        else askToConnectSpotify();
         break;
     }
   };
@@ -680,10 +641,6 @@ function LibraryPill() {
               <Folder className="w-5 h-5 text-ink-hi/55" />
             </span>
           )
-        ) : r.kind === "spotify" ? (
-          <span className="w-12 h-12 rounded-md bg-ink-hi/[0.06] art-hairline shrink-0 grid place-items-center">
-            <SpotifyIcon className="w-6 h-6" />
-          </span>
         ) : r.thumb ? (
           <img src={upgradeArtwork(r.thumb)} alt="" draggable={false} className="w-12 h-12 rounded-md object-cover art-hairline shrink-0" />
         ) : (

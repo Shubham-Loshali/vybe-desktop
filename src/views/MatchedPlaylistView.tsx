@@ -21,7 +21,7 @@ import { useDrag } from "../lib/dnd";
 import { downloadAll } from "../lib/downloads";
 import { fmtTime, plural, shortTitle } from "../lib/format";
 import { pendingImport } from "../lib/importSongs";
-import { ipcMessage, spotifyUrl, useSpotify } from "../lib/spotify";
+import { ipcMessage, spotifyUrl } from "../lib/spotify";
 import { trackMenuItems } from "../lib/trackActions";
 import { useSongMatches, type MatchState } from "../lib/useSongMatches";
 import { useLibrary } from "../stores/library";
@@ -152,9 +152,6 @@ function MatchRow({
 /** spotifyId: a connected account's playlist; otherwise importId names the import being shown. */
 export function MatchedPlaylistView({ spotifyId, importId = "" }: { spotifyId: string | null; importId?: string }) {
   const prefer = useSettings((s) => s.matchLanguage);
-  // What the library already knows of the account's playlist: its name and owner show at once.
-  const known = useSpotify((s) => (spotifyId === null ? undefined : s.playlists.find((p) => p.id === spotifyId)));
-  const account = useSpotify((s) => s.status.name);
   const [playlist, setPlaylist] = useState<(ImportedPlaylist & { fromSpotify: boolean }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
@@ -199,8 +196,8 @@ export function MatchedPlaylistView({ spotifyId, importId = "" }: { spotifyId: s
   const loading = !playlist;
   const fromSpotify = playlist ? playlist.fromSpotify : true;
   const songs = playlist?.songs ?? [];
-  const name = playlist?.name ?? known?.name ?? (spotifyId === "liked" ? "Liked Songs" : "Spotify playlist");
-  const owner = playlist?.owner ?? known?.owner;
+  const name = playlist?.name ?? (spotifyId === "liked" ? "Liked Songs" : "Spotify playlist");
+  const owner = playlist?.owner;
   const matched: Track[] = [];
   const position: number[] = [];
   let finding = 0;
@@ -276,7 +273,7 @@ export function MatchedPlaylistView({ spotifyId, importId = "" }: { spotifyId: s
           <>
             {loading
               ? "Reading the playlist from Spotify"
-              : [plural(songs.length, "song", "songs"), owner ? (fromSpotify && owner === account ? "By you" : `By ${owner}`) : null]
+              : [plural(songs.length, "song", "songs"), owner ? `By ${owner}` : null]
                   .filter(Boolean)
                   .join(" · ")}
             {(progress || cut) && (

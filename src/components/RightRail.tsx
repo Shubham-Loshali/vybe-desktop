@@ -17,8 +17,6 @@ import { useUI, type MenuItem } from "../stores/ui";
 import { dontPlay, useAutoplayInfo } from "../lib/autoplay";
 import { confirmClearHistory, historyMenuItems, trackMenuItems } from "../lib/trackActions";
 import { Artwork, Btn, EqBars, IconBtn, Switch } from "./primitives";
-import { RoomPanel } from "./RoomPanel";
-import { useRoom } from "../stores/room";
 import { upgradeArtwork, wideArtwork } from "../lib/artwork";
 import { useDrag, useTrackDrop } from "../lib/dnd";
 import { useSortable, type SortableRowProps } from "../lib/useSortable";
@@ -163,8 +161,7 @@ export function QueuePanel({ onClose }: { onClose: () => void }) {
   const playTrack = usePlayer((s) => s.playTrack);
   const autoplay = useSettings((s) => s.autoplay);
   const setAutoplay = useSettings((s) => s.setAutoplay);
-  /** In a room the queue is everyone's, and AutoPlay sits out. */
-  const inRoom = useRoom((s) => s.view.state !== null);
+  const inRoom = false;
   const { seedTitle, loading } = useAutoplayInfo();
   const liked = useLibrary((s) => s.liked);
   const toggleLike = useLibrary((s) => s.toggleLike);
@@ -644,7 +641,7 @@ export function RightRail() {
       className="w-[328px] shrink-0 flex flex-col glass-pill rounded-2xl overflow-hidden"
       aria-label="Now playing panel"
     >
-      {mode === "queue" ? <QueuePanel onClose={closeQueue} /> : mode === "room" ? <RoomPanel onClose={closeQueue} /> : <DetailsBody />}
+      {mode === "queue" ? <QueuePanel onClose={closeQueue} /> : <DetailsBody />}
     </aside>
   );
 }

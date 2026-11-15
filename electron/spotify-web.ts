@@ -211,7 +211,7 @@ export function queryHash(script: string, operation: string): string | null {
   return new RegExp(`["']${operation}["']\\s*,\\s*["']query["']\\s*,\\s*["']([0-9a-f]{64})["']`).exec(script)?.[1] ?? null;
 }
 
-/* ---------------- Canvas (adapted from GPL-3.0 code, see NOTICE) ---------------- */
+/* ---------------- Canvas ---------------- */
 
 /** One track in an answer to the web player's searchTracks query. */
 export interface SpotifyTrackHit {

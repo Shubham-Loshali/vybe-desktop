@@ -23,7 +23,7 @@ import type { LocalTrack } from "../../electron/local-library";
 import type { Track } from "../types";
 import { LikedView } from "./LikedView";
 import { DownloadsView } from "./DownloadsView";
-import { DOWNLOADS_COVER, LIKED_COVER, LOCAL_COVER } from "../lib/libraryCovers";
+import { DOWNLOADS_COVER, LIKED_COVER } from "../lib/libraryCovers";
 
 type LibTab = "playlists" | "liked" | "downloaded";
 
@@ -176,14 +176,6 @@ export function LibraryView() {
       fallback: Download,
       onOpen: () => navigate({ name: "downloads" }),
       onPlay: saved.length ? play(saved, "__downloads__") : undefined,
-    }),
-    collection("local", {
-      covers: [LOCAL_COVER, ...local.map((t) => t.art)],
-      title: "Local Music",
-      subtitle: local.length ? plural(local.length, "song", "songs") : "On this device",
-      fallback: FolderOpen,
-      onOpen: () => navigate({ name: "local" }),
-      onPlay: local.length ? () => usePlayer.getState().playQueue(local.map(localToTrack), 0, "__local__") : undefined,
     }),
   ].sort((a, b) => Number(isPinned(pinnedSingles, b.key)) - Number(isPinned(pinnedSingles, a.key)));
 

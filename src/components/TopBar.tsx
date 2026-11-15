@@ -42,8 +42,8 @@ import type { SearchSuggestion } from "../types";
 import { Artwork } from "./primitives";
 import { FitText } from "./FitText";
 import { useMenuLight } from "./ContextMenu";
-import { StreakChip } from "./Streak";
 import { useUpdates } from "../lib/updates";
+import { importFromText, isSpotifyLink } from "../lib/importSongs";
 import brandLogo from "../assets/brand/vybe-logo.svg";
 import brandText from "../assets/brand/vybe-Text.svg";
 
@@ -288,6 +288,14 @@ export function TopBar() {
   const submitSearch = (text: string): void => {
     const t = text.trim();
     if (!t) return;
+    if (isSpotifyLink(t)) {
+      setQuery("");
+      closeDropdown();
+      setFieldFocused(false);
+      inputRef.current?.blur();
+      void importFromText(t);
+      return;
+    }
     setQuery(t);
     useRecents.getState().pushSearch(t);
     closeDropdown();
@@ -689,7 +697,6 @@ export function TopBar() {
       <div className="ml-auto h-full flex items-center gap-1 shrink-0">
         <div className="app-no-drag flex items-center gap-1">
           <UpdateChip />
-          <StreakChip />
         </div>
         <div className="app-no-drag ml-1 mr-2 flex items-center">
           <Avatar onClick={toggleSettings} active={settingsShown} />

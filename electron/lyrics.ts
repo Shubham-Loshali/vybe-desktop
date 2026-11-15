@@ -1600,7 +1600,7 @@ function pickLrclibSearchHit(results: any, q: LyricQuery): ProviderResult | null
  * from an earlier play of the same video. Without one, lrc.red's own search
  * is asked, and its hits are matched here rather than trusted in order — the
  * search is a free-text one and ranks "Bohemian Rhapsody (Operatic Section /
- * 2011 A Cappella Mix)" above the song itself. (Adapted from GPL-3.0 code, see NOTICE.)
+ * 2011 A Cappella Mix)" above the song itself.
  */
 const LRCRED = "https://lrc.red";
 const IDENTIFY_TIMEOUT_MS = 2500;

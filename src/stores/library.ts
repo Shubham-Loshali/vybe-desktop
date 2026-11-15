@@ -51,11 +51,11 @@ export interface DownloadItem {
   total: number;
 }
 
-/** Pinnable library shortcuts — Liked Songs, Downloads, Local Music. */
-export type PinnedSingleKey = "liked" | "spotify" | "replay" | "downloads" | "local";
+/** Pinnable library shortcuts — Liked Songs, Downloads. */
+export type PinnedSingleKey = "liked" | "replay" | "downloads";
 /** The sidebar's shortcut rows, in their order. */
-export const SINGLE_KEYS: PinnedSingleKey[] = ["liked", "spotify", "replay", "downloads", "local"];
-const PIN_DEFAULTS: Record<PinnedSingleKey, boolean> = { liked: true, spotify: true, replay: true, downloads: false, local: false };
+export const SINGLE_KEYS: PinnedSingleKey[] = ["liked", "replay", "downloads"];
+const PIN_DEFAULTS: Record<PinnedSingleKey, boolean> = { liked: true, replay: true, downloads: false };
 /**
  * Pins as stored. `v2` marks a set written since Spotify and Replay became pinnable (2026-11-03).
  * An older set saved "pinned" for every row whether chosen or not, so only its unpins still count.

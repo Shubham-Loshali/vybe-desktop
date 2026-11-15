@@ -3,6 +3,7 @@ dist/
 dist-electron/
 release/
 *.log
+/opening.mp3
 .DS_Store
 .vybe-install
 .test-build

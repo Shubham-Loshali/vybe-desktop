@@ -228,7 +228,7 @@ test("a display name is 1-30 characters, trimmed, with no control characters", a
   for (const bad of ["", " Alice", "Alice ", "a".repeat(31), "Al\nice", "Al\u0007ice"]) {
     await assert.rejects(as(ALICE, SAVE_NAME, [ALICE, bad]), /violates check constraint/, JSON.stringify(bad));
   }
-  for (const good of ["A", "a".repeat(30), "Ana María", "リシ", "🎧 Rishi", `${"x".repeat(29)}🎧`]) {
+  for (const good of ["A", "a".repeat(30), "Ana María", "🎧 Alex", `${"x".repeat(29)}🎧`]) {
     await as(ALICE, SAVE_NAME, [ALICE, good]);
   }
 });

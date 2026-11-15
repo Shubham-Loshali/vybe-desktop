@@ -2,12 +2,8 @@
  * Close to tray: what closing Vybe's main window does, and the menu of the Windows tray icon. Pure, so both
  * are unit-tested without Electron; main.ts owns the window, the Tray and the wiring.
  *
- * Adapted from third-party code under the Apache License, Version 2.0 (see NOTICE), and changed:
- * http://www.apache.org/licenses/LICENSE-2.0
  * Vybe keeps running with its window closed. The window that comes back is the same one, its page still
- * loaded, so the launch intro (index.html) only plays again after a real quit. Changed from the original: the tray
- * carries the transport, closing to it pauses the music, and Windows only hides while the tray icon is there
- * to bring it back.
+ * loaded, so the launch intro (index.html) only plays again after a real quit.
  */
 
 import type { MenuCommand, MenuPlaybackState, MenuTemplate } from "./mac-menu";

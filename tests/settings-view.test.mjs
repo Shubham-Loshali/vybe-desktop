@@ -48,7 +48,7 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 };
 
-const ACCOUNT = { mode: "account", username: "rishi", displayName: "Rishi", loaded: true };
+const ACCOUNT = { mode: "account", username: "vybeuser", displayName: "Vybe User", loaded: true };
 
 async function mount(session = ACCOUNT, view = { name: "settings" }) {
   const dom = new JSDOM("<div id='root'></div>", { url: "http://localhost", pretendToBeVisual: true });
@@ -144,8 +144,8 @@ test("Settings opens on Account, with every category in the rail and you at the 
     assert.equal(h.$(".st-nav-item[aria-current='page']")?.textContent, "Account");
     assert.equal(h.title(), "Account");
     const card = h.$(".st-id");
-    assert.match(card.textContent, /Rishi/);
-    assert.match(card.textContent, /@rishi/);
+    assert.match(card.textContent, /Vybe User/);
+    assert.match(card.textContent, /@vybeuser/);
     assert.match(card.textContent, /Synced/);
     assert.ok(h.$$(".st-btn").some((b) => b.textContent === "Back up now"));
   } finally {
