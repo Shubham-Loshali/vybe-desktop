@@ -1,13 +1,12 @@
 /*
- * Ends Vybe's launch intro (index.html's #intro, drawn by src/intro.css). Adapted from a third-party
- * startup loader under the
- * Apache License, Version 2.0 (see NOTICE): http://www.apache.org/licenses/LICENSE-2.0
+ * Ends Vybe's launch intro (index.html's #intro, drawn by src/intro.css).
  * Once the intro has played and the app is ready (App sends "vybe-startup-ready"), the window's glass goes
  * (main.ts setGlass) and the app is drawn under the intro, unseen; then it shows as the logo glides into the
  * app's own (the top bar's, or onboarding's). With nowhere to land, or with reduced motion, the intro fades
- * out. Changed from the original: it waits for the app as the original does, and for the logo to finish; it lands the
- * logo rather than cross-fading.
+ * out.
  */
+
+import openingAudioUrl from "./assets/opening.mp3";
 
 const GLIDE: KeyframeAnimationOptions = { duration: 700, easing: "cubic-bezier(0.65, 0, 0.35, 1)", fill: "forwards" };
 // The intro's mark is the ghost: 400 of the 600-unit viewBox's units (index.html); the app's <img> is the
@@ -28,6 +27,28 @@ const centre = (r: DOMRect): Point => ({ x: r.left + r.width / 2, y: r.top + r.h
 export const flight = (box: { left: number; top: number }, from: Point, to: Point, k: number): string =>
   `translate(${to.x - box.left - k * (from.x - box.left)}px, ${to.y - box.top - k * (from.y - box.top)}px) scale(${k})`;
 
+function playOpeningAudio(): void {
+  try {
+    const win = window as unknown as { __openingAudio?: HTMLAudioElement };
+    if (win.__openingAudio && !win.__openingAudio.paused) return;
+    const audio = win.__openingAudio || new Audio(openingAudioUrl);
+    win.__openingAudio = audio;
+    audio.currentTime = 0;
+    const p = audio.play();
+    if (p !== undefined) {
+      p.catch(() => {
+        const resume = () => {
+          if (audio.paused) void audio.play().catch(() => undefined);
+          window.removeEventListener("pointerdown", resume);
+          window.removeEventListener("keydown", resume);
+        };
+        window.addEventListener("pointerdown", resume, { once: true });
+        window.addEventListener("keydown", resume, { once: true });
+      });
+    }
+  } catch {}
+}
+
 /** Call before the app renders: its ready signal comes once. */
 export function endIntro(): void {
   const intro = document.getElementById("intro");
@@ -37,6 +58,7 @@ export function endIntro(): void {
     intro.remove();
     return;
   }
+  playOpeningAudio();
   // Resolves with the app's own Reduce animation; never held on the intro, ready or not.
   const ready = Promise.race([
     new Promise<boolean>((r) =>
@@ -56,13 +78,18 @@ async function play(intro: HTMLElement, ready: Promise<boolean>): Promise<void> 
   const all = intro.getAnimations({ subtree: true });
   const played = all.filter((a) => a.effect?.getTiming().iterations !== Infinity);
   const breathing = all.filter((a) => !played.includes(a));
-  // A hidden window never runs its animations, so a timer makes sure the app still appears.
+  
+  // Guarantee the opening Vybe animation and sound play first (~2.7s) before handing over to the app
+  const minIntroDuration = wait(2700);
   const done = Promise.race([Promise.allSettled(played.map((a) => a.finished)), wait(4000)]);
-  const reduce = (await ready) || matchMedia("(prefers-reduced-motion: reduce)").matches;
-  // With Reduce animation on, the app shows as soon as it's ready.
-  if (reduce) for (const a of breathing) void settle(a);
-  else {
-    await done;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (reduce) {
+    await ready;
+    for (const a of breathing) void settle(a);
+  } else {
+    // Wait for the full animation sequence, audio, and ready state
+    await Promise.all([done, minIntroDuration, ready]);
     // The logo is still before the app is drawn under it, so nothing moves while that first picture is made.
     await Promise.all(breathing.map(settle));
     await warmUp(intro);

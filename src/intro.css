@@ -1,11 +1,9 @@
 /*
- * Vybe's launch intro (index.html's #intro; src/intro.ts ends it): a startup loader adapted from
- * third-party code under the Apache License 2.0 (see NOTICE), with
- * Vybe's animation in it. The window opens as glass (main.ts setGlass: Windows 11's acrylic, the desktop
+ * Vybe's launch intro (index.html's #intro; src/intro.ts ends it).
+ * The window opens as glass (main.ts setGlass: Windows 11's acrylic, the desktop
  * blurred behind it) and the logo shell pops in with its spring. The mark draws itself in light inside
  * the shell (the brand kit's logo intro, 06_Motion) as the glass darkens into the app's ground; then the
  * shell slides into the lockup as "Vybe" rises in beside it, and intro.ts lands the logo in the top bar's.
- * Changed from the original: Vybe's mark and wordmark and their motion, the darkening, the landing.
  * A linked stylesheet in <head>, so it applies before anything paints. public/intro.js turns it on
  * (html.intro) except in the miniplayer's window.
  */
