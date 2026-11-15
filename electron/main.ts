@@ -22,7 +22,8 @@ import { displayNameProblem, normalizeDisplayName } from "../src/lib/account-val
 import * as stats from "./stats";
 import { naturalScrolling } from "./scroll-direction";
 import { proxyUrlFor, proxyUrlForLocalTrack, setDownloadedFileLookup, startStreamProxy } from "./stream-proxy";
-import * as auth from "./supabase";
+import * as auth from "./firebase";
+import { checkDesktopKillSwitch } from "./kill-switch";
 import * as sync from "./sync";
 import * as updates from "./updater";
 import * as transition from "./data-transition";
@@ -33,6 +34,9 @@ import type { Track } from "../src/types";
 
 const isDev = !!process.env.VITE_DEV_SERVER_URL;
 const isMac = process.platform === "darwin";
+
+// Allow startup sounds and audio to play on launch without requiring a prior user gesture.
+app.commandLine.appendSwitch("autoplay-policy", "no-user-gesture-required");
 
 // Covers extracted from local files are served to the renderer over this
 // scheme; registered privileged so <img> can use it everywhere.
@@ -895,6 +899,14 @@ function registerIpc(): void {
     if (p && isApprovedPath(p)) return shell.openPath(p);
     return "Not allowed";
   });
+  ipc.handle("app:openExternal", (_e, url: string) => {
+    try {
+      const u = new URL(url);
+      if (u.protocol === "http:" || u.protocol === "https:") {
+        void shell.openExternal(u.href);
+      }
+    } catch {}
+  });
 
   ipc.handle("download:start", async (_e, track: Track, dir?: string, quality?: string, exportCompat?: boolean) => {
     if (dir && !isApprovedPath(dir)) throw new Error("Download folder not approved");
@@ -994,6 +1006,7 @@ function registerIpc(): void {
       /* window gone */
     }
   };
+  ipc.handle("killswitch:check", () => checkDesktopKillSwitch());
   ipc.handle("auth:getSession", () => auth.sessionInfo());
   // ---- Accounts (Supabase) + cloud backup ----
   /**

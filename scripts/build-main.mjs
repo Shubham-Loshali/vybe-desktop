@@ -14,13 +14,6 @@ try {
 }
 const url = process.env.VYBE_SUPABASE_URL ?? "";
 const key = process.env.VYBE_SUPABASE_KEY ?? "";
-if (!url || !key) {
-  if (process.env.VYBE_RELEASE === "1") {
-    console.error("Release build without VYBE_SUPABASE_URL / VYBE_SUPABASE_KEY: accounts would be off. Add them to .env (or CI secrets).");
-    process.exit(1);
-  }
-  console.warn("[build-main] No Supabase project set (.env): this build runs guest-only.");
-}
 
 await build({
   entryPoints: ["electron/main.ts", "electron/preload.ts"],

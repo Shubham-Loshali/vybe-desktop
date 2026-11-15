@@ -10,10 +10,10 @@
  */
 
 export const USERNAME_MIN = 3;
-export const USERNAME_MAX = 20;
-export const PASSWORD_MIN = 8;
+export const USERNAME_MAX = 80;
+export const PASSWORD_MIN = 6;
 
-export const USERNAME_RE = /^[a-zA-Z0-9_@]+$/;
+export const USERNAME_RE = /^[a-zA-Z0-9_.@+-]+$/;
 
 /** Canonical form stored in the database and used for lookups. */
 export function normalizeUsername(username: string): string {
@@ -22,7 +22,7 @@ export function normalizeUsername(username: string): string {
 
 /** What the user may type — the canonical form must round-trip losslessly. */
 export function usernameTypable(username: string): string {
-  return username.replace(/[^a-zA-Z0-9_@]/g, "").slice(0, USERNAME_MAX);
+  return username.replace(/[^a-zA-Z0-9_.@+-]/g, "").slice(0, USERNAME_MAX);
 }
 
 /**
@@ -32,9 +32,9 @@ export function usernameTypable(username: string): string {
  */
 export function usernameProblem(username: string): string | null {
   const clean = normalizeUsername(username);
-  if (clean.length < USERNAME_MIN) return `Username must be at least ${USERNAME_MIN} characters.`;
-  if (clean.length > USERNAME_MAX) return `Username must be at most ${USERNAME_MAX} characters.`;
-  if (!USERNAME_RE.test(clean)) return "Use letters, numbers, _ and @ only.";
+  if (clean.length < USERNAME_MIN) return `Username or email must be at least ${USERNAME_MIN} characters.`;
+  if (clean.length > USERNAME_MAX) return `Username or email must be at most ${USERNAME_MAX} characters.`;
+  if (!USERNAME_RE.test(clean)) return "Use valid characters (letters, numbers, _, ., @, +, -).";
   return null;
 }
 

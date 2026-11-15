@@ -388,7 +388,7 @@ function UsernamePasswordForm({
   return (
     <form onSubmit={(e) => void submit(e)}>
       <BackLink onClick={onBack} disabled={busy} />
-      <Title lede={signup ? "No email needed, but a lost password can't be reset." : undefined}>
+      <Title lede={signup ? "Sign up with your email or pick a username." : undefined}>
         {signup ? "Create your account" : "Sign in"}
       </Title>
       <div className="ob-fields">
@@ -396,8 +396,8 @@ function UsernamePasswordForm({
           <DisplayNameField value={displayName} onChange={setDisplayName} hint="What people see" autoFocus disabled={busy} />
         )}
         <Field
-          label="Username"
-          hint={signup ? "For signing in. Letters, numbers, _ and @" : undefined}
+          label="Email or Username"
+          hint={signup ? "e.g. name@example.com or username" : undefined}
           {...(signup ? usernameStatus(availability, formatProblem) : {})}
           autoFocus={!signup}
           value={username}

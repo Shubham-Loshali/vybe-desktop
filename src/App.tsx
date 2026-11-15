@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { ContextMenu } from "./components/ContextMenu";
 import { Dialog } from "./components/primitives";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -16,8 +16,7 @@ import { initAutoplay } from "./lib/autoplay";
 import { setAmbientFromArtwork } from "./lib/ambient";
 import { listenForDownloadProgress } from "./lib/downloads";
 import { listenForOpenedFiles } from "./lib/openedFiles";
-import { watchSpotify } from "./lib/spotify";
-import { listenForRooms } from "./lib/rooms";
+import { importFromText, isSpotifyLink } from "./lib/importSongs";
 import { FileDropOverlay } from "./components/FileDropOverlay";
 import { LYRICS_NUDGE_STEP, useLyricsNudge } from "./lib/lyricsOffset";
 import { watchMenuCommands } from "./lib/menuCommands";
@@ -43,8 +42,7 @@ import { ExploreView } from "./views/ExploreView";
 import { HomeView } from "./views/HomeView";
 import { RemotePlaylistView } from "./views/RemotePlaylistView";
 import { MatchedPlaylistView } from "./views/MatchedPlaylistView";
-import { SpotifyView } from "./views/SpotifyView";
-import { LibraryView } from "./views/LibraryView";import { LocalMusicView } from "./views/LocalMusicView";
+import { LibraryView } from "./views/LibraryView";
 import { PlaylistView } from "./views/PlaylistView";
 import { ReplayView } from "./views/ReplayView";
 import { PodcastView } from "./views/PodcastView";
@@ -216,13 +214,24 @@ function useKeyboardShortcuts(): void {
       window.clearTimeout(settle);
       settle = window.setTimeout(() => apply(swipe.quiet(performance.now())), SWIPE_LIFT_MS + 10);
     };
+    const onPaste = (e: ClipboardEvent): void => {
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement) return;
+      const text = e.clipboardData?.getData("text")?.trim();
+      if (text && isSpotifyLink(text)) {
+        e.preventDefault();
+        void importFromText(text);
+      }
+    };
     window.addEventListener("keydown", onKey);
     window.addEventListener("mouseup", onMouseUp);
     window.addEventListener("wheel", onWheel, { passive: true });
+    window.addEventListener("paste", onPaste);
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("paste", onPaste);
       window.clearTimeout(settle);
       swipeArrow.cancel();
     };
@@ -284,15 +293,13 @@ function CurrentView(): ReactNode {
     case "import":
       return <MatchedPlaylistView key={view.param} spotifyId={null} importId={view.param ?? ""} />;
     case "spotify":
-      return view.param ? <MatchedPlaylistView key={view.param} spotifyId={view.param} /> : <SpotifyView />;
+      return view.param ? <MatchedPlaylistView key={view.param} spotifyId={view.param} /> : null;
     case "album":
       return <AlbumView albumId={view.param ?? ""} />;
     case "artist":
       return <ArtistView artistId={view.param ?? ""} />;
     case "downloads":
       return <DownloadsView />;
-    case "local":
-      return <LocalMusicView />;
     case "replay":
       return <ReplayView />;
     case "podcast":
@@ -309,6 +316,7 @@ function CurrentView(): ReactNode {
 }
 
 export default function App() {
+  const [killSwitch, setKillSwitch] = useState<{ killed: boolean; reason?: string; updateUrl?: string } | null>(null);
   const viewName = useUI((s) => s.view.name);
   const viewReloadNonce = useUI((s) => s.viewReloadNonce);
   const pendingScroll = useUI((s) => s.pendingScroll);
@@ -317,6 +325,16 @@ export default function App() {
   const viewScrollRef = useRef<HTMLDivElement | null>(null);
   const session = useSession();
   const panelDrop = usePanelDrop();
+
+  useEffect(() => {
+    if (window.vybe?.killSwitchCheck) {
+      void window.vybe.killSwitchCheck().then((res) => {
+        if (res?.killed) {
+          setKillSwitch(res);
+        }
+      });
+    }
+  }, []);
 
   // Back/forward land the user at the scroll they left the view at. Runs as a
   // layout effect so the offset applies before the first paint of the restored
@@ -344,8 +362,6 @@ export default function App() {
 
   // Audio files opened with Vybe or dropped on the window play at once.
   useEffect(() => listenForOpenedFiles(), []);
-  useEffect(() => watchSpotify(), []);
-  useEffect(() => listenForRooms(), []);
 
   // Native miniplayer bridge: push playback snapshots to the PiP window and
   // execute transport commands coming back from it.
@@ -428,10 +444,41 @@ export default function App() {
   useAmbient();
   useAppearance();
 
+  if (killSwitch?.killed) {
+    return (
+      <div className="h-screen w-screen bg-[#0d0d0f] text-white flex flex-col items-center justify-center p-8 select-none">
+        <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-2xl p-8 flex flex-col items-center text-center shadow-2xl backdrop-blur-xl">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-6 text-red-400">
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold mb-3 tracking-tight">Update Required</h2>
+          <p className="text-white/60 text-sm leading-relaxed mb-6">
+            {killSwitch.reason || "This version of Vybe Desktop is no longer supported. Please update to continue."}
+          </p>
+          <button
+            onClick={() => {
+              const url = killSwitch.updateUrl || "https://github.com/Shubham-Loshali/Vybe-desktop/releases/latest";
+              if (window.vybe?.openExternal) {
+                void window.vybe.openExternal(url);
+              } else {
+                window.open(url, "_blank");
+              }
+            }}
+            className="w-full py-3 px-6 rounded-xl bg-white text-black font-semibold hover:bg-white/90 active:scale-[0.98] transition-all shadow-lg hover:shadow-white/10 cursor-pointer"
+          >
+            Download Update
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // First run / reinstall gate — no shell is rendered until a mode is chosen.
   if (!session.loaded) return <div className="h-screen bg-canvas" />;
-  if (session.mode === null) return <Onboarding initial={takeOnboardingIntent() ?? "choose"} />;
-  if (session.mode === "guest" && session.freshInstall) return <Onboarding initial="resume" />;
+  if (session.mode === null) return <Onboarding initial={takeOnboardingIntent() ?? "signin"} />;
+  if (session.mode === "guest" && session.freshInstall) return <Onboarding initial="signin" />;
   // A fresh Google user must choose their username before entering.
   if (session.mode === "account" && session.needsUsername) return <Onboarding initial="pickusername" />;
 

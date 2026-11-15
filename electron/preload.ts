@@ -218,7 +218,11 @@ const api = {
   getPodcasts: (): Promise<PodcastShelf[]> => ipcRenderer.invoke("music:podcasts"),
   backupImport: () => ipcRenderer.invoke("backup:import"),
 
-  // Accounts (Supabase) + cloud backup
+  // Desktop Kill Switch & Version Validator
+  killSwitchCheck: (): Promise<{ killed: boolean; reason?: string; updateUrl?: string }> =>
+    ipcRenderer.invoke("killswitch:check"),
+
+  // Accounts (Firebase Auth) + cloud backup
   authGetSession: () => ipcRenderer.invoke("auth:getSession"),
   authSignUp: (username: string, password: string, displayName: string) =>
     ipcRenderer.invoke("auth:signUp", username, password, displayName),
@@ -282,6 +286,7 @@ const api = {
   pickFolder: () => ipcRenderer.invoke("app:pickFolder"),
   revealPath: (p: string) => ipcRenderer.invoke("app:revealPath", p),
   openPath: (p: string) => ipcRenderer.invoke("app:openPath", p),
+  openExternal: (url: string) => ipcRenderer.invoke("app:openExternal", url),
 
   // Downloads
   startDownload: (track: Track, dir?: string, quality?: string, exportCompat?: boolean) => ipcRenderer.invoke("download:start", track, dir, quality, exportCompat),
