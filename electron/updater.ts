@@ -17,8 +17,8 @@
 import { app, Notification, shell } from "electron";
 import * as persist from "./persist";
 
-const RELEASES = "https://github.com/YOUR_GITHUB_USERNAME/Vybe/releases";
-export const DOWNLOAD_PAGE = "https://github.com/YOUR_GITHUB_USERNAME/Vybe/releases";
+const RELEASES = "https://github.com/Shubham-Loshali/Vybe-Desktop/releases";
+export const DOWNLOAD_PAGE = "https://github.com/Shubham-Loshali/Vybe-Desktop/releases";
 const FIRST_CHECK_MS = 20_000;
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
 

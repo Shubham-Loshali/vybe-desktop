@@ -1514,7 +1514,7 @@ function UpdatesGroup() {
                     title: version ? "Couldn't update" : "Couldn't check for updates",
                     note: u.error ?? "Try again in a moment",
                     control: version
-                      ? <Button onClick={() => window.open("https://github.com/YOUR_GITHUB_USERNAME/Vybe", "_blank", "noopener")}>Download</Button>
+                      ? <Button onClick={() => window.open("https://github.com/Shubham-Loshali/Vybe-Desktop", "_blank", "noopener")}>Download</Button>
                       : check,
                   }
                 : { title: "Updates", note: `You have version ${current}`, control: check };
@@ -1545,7 +1545,7 @@ function AboutPane() {
           title="Vybe website"
           note="Downloads, release notes and help on GitHub"
           control={<ExternalLink className="st-go" />}
-          onClick={() => window.open("https://github.com/YOUR_GITHUB_USERNAME/Vybe", "_blank", "noopener")}
+          onClick={() => window.open("https://github.com/Shubham-Loshali/Vybe-Desktop", "_blank", "noopener")}
         />
       </Group>
     </>
